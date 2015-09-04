@@ -1,0 +1,39 @@
+.reveal pre.interact {
+    background: #6F6F6F;
+}
+
+.reveal pre.smallCode code {
+    max-height: 250px;
+    font-size: 0.65em !important;
+    line-height: 1.1em !important;
+}
+
+.reveal pre.interact div {
+    position: relative;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    padding: 0;
+    margin: 0;
+    box-shadow: inset 0px 0px 18px 0px rgba(0,0,0,0.5);
+}
+
+.reveal canvas {
+    position: relative;
+}
+
+.reveal input {
+    outline: none;
+    border: 0;
+    width: 90%;
+    position: relative;
+    margin-right: 0;
+    display: block;
+    margin-left: 5px;
+    overflow: auto;
+    max-height: 400px;
+    word-wrap: normal;
+    background: transparent;
+    color: #ECECEC; }
+

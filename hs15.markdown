@@ -1,0 +1,267 @@
+---
+title: 'A Lightning Talk with GHCJS'
+author: Luite Stegeman
+tags: [Haskell, functional programming, JavaScript, web, GHCJS]
+abstract: |
+  Haskell Symposium 2015
+...
+
+# GHCJS
+
+----------------------------
+
+## Features
+
+* Threads
+* STM
+* Template Haskell
+
+Recent
+
+* base library rewrite
+* Profiling (Heap / CPU)
+* GHCJSi REPL
+
+**Soon:** Better optimizer / ES2015 tail calls
+
+----------------------------
+
+## Installation
+
+Use GHC 7.10.2 (MinGHC on Windows):
+
+```
+$ cabal install http://ghcjs.luite.com/improved-base.tar.gz
+$ ghcjs-boot
+```
+
+
+----------------------------
+
+## How To Use
+
+Stand-alone:
+
+```
+$ ghcjs -O hello.hs
+$ node hello.jsexe/all.js
+Hello, World!
+```
+
+Cabal:
+
+```
+$ cabal install --ghcjs package
+```
+
+----------------------------
+
+# Examples
+
+----------------------------
+
+## Run Haskell
+
+```{.runhaskell}
+start ref = staticText ref (take 30 (show fibs) ++ "...")
+---
+fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
+```
+
+## Run Haskell
+
+```{.haskell}
+start ref = staticText ref (take 30 (show fibs) ++ "...")
+---
+fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
+```
+
+----------------------------
+
+## Run Haskell
+
+```{.haskell}
+start ref = dynamicText ref "10" (show . (fibs!!) . read)
+---
+fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
+```
+
+----------------------------
+
+## Run Haskell
+
+```{.runhaskell}
+start ref = dynamicText ref "10" (show . (fibs!!) . read)
+---
+fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
+```
+
+----------------------------
+
+```{.runhaskell}
+start ref = staticDiagram ref 600 300 (tournament 5)
+
+node :: Int -> Diagram Canvas
+node n = circle 0.2 # fc green # named n
+
+arrowOpts = with & gaps       .~ small
+                 & headLength .~ local 0.15
+
+tournament :: Int -> Diagram Canvas
+tournament n = atPoints (trailVertices $ regPoly n 1) (map node [1..n])
+  # applyAll [connectOutside' arrowOpts j k | j <- [1 .. n-1], k <- [j+1 .. n]]
+```
+
+----------------------------
+
+```{.runhaskell}
+start ref = dynamicDiagram ref 600 300 "5" (tournament . read)
+
+node :: Int -> Diagram Canvas
+node n = circle 0.2 # fc green # named n
+
+arrowOpts = with & gaps       .~ small
+                 & headLength .~ local 0.15
+
+tournament :: Int -> Diagram Canvas
+tournament n = atPoints (trailVertices $ regPoly n 1) (map node [1..n])
+  # applyAll [connectOutside' arrowOpts j k | j <- [1 .. n-1], k <- [j+1 .. n]]
+```
+
+----------------------------
+
+```{.runhaskell .smallCode}
+start ref = dynamicDiagram ref 600 300 "0.45" (example . read)
+---
+pts = map p2 [(0,0), (1,1), (2,1), (3,0), (3.5,0)]
+
+spline :: Located (Trail V2 Double)
+spline = cubicSpline False pts
+
+example :: Double -> Diagram Canvas
+example param = frame 0.5 $
+  strokeLocTrail spline
+  <> mconcat
+     [ tangentLine
+     , baselineText "tangent" # translate tangentVector
+     , normalLine
+     , topLeftText "normal" # translate normalVector
+     , rightAngleSquare
+     ] # moveTo pt # fontSize large
+  where
+    pt = atParam spline param
+    tangentVector = tangentAtParam spline param
+    normalVector = normalAtParam spline param
+    symmetricLine v = fromOffsets [2 *^ v] # center
+    tangentLine = symmetricLine tangentVector
+    normalLine = symmetricLine normalVector
+    rightAngleSquare = square 0.1 # alignBL # rotate (signedAngleBetween tangentVector unitX)
+
+```
+
+----------------------------
+
+```{.runhaskell}
+start ref = 
+  let w   = 600
+      h   = 300
+      sq  = square 1 # scaleX w # scaleY h # fc green
+      cir = circle 10 # fc blue 
+  in mouseDiagram ref 600 300 $ \x y ->
+       translate (r2 (w*x-w/2-5,5+h/2-h*y)) cir `atop` sq
+```
+
+----------------------------
+
+```{.runhaskell .smallCode}
+start ref = mouseDiagram ref 600 300 (\x _y -> example x)
+---
+pts = map p2 [(0,0), (1,1), (2,1), (3,0), (3.5,0)]
+
+spline :: Located (Trail V2 Double)
+spline = cubicSpline False pts
+
+example :: Double -> Diagram Canvas
+example param = frame 0.5 $
+  strokeLocTrail spline
+  <> mconcat
+     [ tangentLine
+     , baselineText "tangent" # translate tangentVector
+     , normalLine
+     , topLeftText "normal" # translate normalVector
+     , rightAngleSquare
+     ] # moveTo pt # fontSize large
+  where
+    pt = atParam spline param
+    tangentVector = tangentAtParam spline param
+    normalVector = normalAtParam spline param
+    symmetricLine v = fromOffsets [2 *^ v] # center
+    tangentLine = symmetricLine tangentVector
+    normalLine = symmetricLine normalVector
+    rightAngleSquare = square 0.1 # alignBL # rotate (signedAngleBetween tangentVector unitX)
+
+```
+
+----------------------------
+
+```{.runhaskell}
+import Diagrams.TwoD.Factorization
+
+example = fdGridList 4 # center # pad 1.05
+
+start ref = staticDiagram ref 600 300 example
+```
+
+----------------------------
+
+```{.runhaskell}
+import Diagrams.TwoD.Factorization
+
+start ref = mouseDiagram ref 600 300 $ \x _ ->
+  factorDiagram (1 + floor (50 * x))
+```
+
+----------------------------
+
+```{.runhaskell}
+import Diagrams.TwoD.Apollonian
+
+start ref = mouseDiagram ref 600 300 $ \x y ->
+  let a = 1 + 6 * x
+      b = 5 - 4 * y
+  in apollonianGasket 0.1 2 a b # centerXY # pad 1.1
+```
+
+----------------------------
+
+## Credits
+
+Brent Yorgey
+
+* Factorization Diagrams
+* Tournament Graph
+* Apollonian Gasket
+
+Pontus Granström
+
+* Tangent and Normal
+
+----------------------------
+
+# Conclusion
+
+----------------------------
+
+## Conclusion
+
+Install GHCJS with GHC 7.10.2 and help test **improved-base**
+
+```
+$ cabal install http://ghcjs.luite.com/improved-base.tar.gz
+$ ghcjs-boot
+```
+
+Code for the slides will be available from my Github
+
+[http://github.com/luite/hs15-talk](http://github.com/luite/hs15-talk)
+
